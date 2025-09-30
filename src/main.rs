@@ -1,20 +1,8 @@
-#[derive(Debug)]
-enum TokenTypes {
-    Number,
-    Plus,
-    Minus,
-    Star,
-    Slash,
-    LParen,
-    RParen,
-}
+use cang::{Token, TokenTypes};
 
-#[derive(Debug)]
-struct Token {
-    token_type: TokenTypes,
-    value: Option<String>,
-    pos: (usize, usize),
-}
+mod parser;
+
+use parser::{eval, Parser};
 
 fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
@@ -116,9 +104,18 @@ fn tokenize(input: &str) -> Vec<Token> {
 }
 
 fn main() {
-    let input = "12 + 34 * (56 - 78)";
+    let input = "1 + 2 * (3 - 4) + 10";
+
     let tokens = tokenize(input);
-    for t in tokens {
-        println!("{:?}", t);
-    }
+    println!("Tokens: {:#?}", tokens);
+    println!("");
+
+    let mut parser = Parser::new(tokens);
+    let ast = parser.parse_expr();
+    println!("AST: {:#?}", ast);
+
+    println!("");
+    let result = eval(&ast);
+    println!("Result: {}", result);
+    println!("");
 }
