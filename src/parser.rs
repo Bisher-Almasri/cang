@@ -1,4 +1,4 @@
-use crate::{Token, TokenTypes};
+use crate::{ResourceValidator, Token, TokenTypes, ValidationError, CoinType};
 
 #[derive(Debug)]
 pub enum Expr {
@@ -89,4 +89,38 @@ pub fn eval(expr: &Expr) -> i64 {
             }
         }
     }
+}
+
+/// Evaluates an expression with coin validation and spending
+pub fn eval_with_validation(
+    expr: &Expr,
+    validator: &mut ResourceValidator,
+) -> Result<i64, ValidationError> {
+    // First validate that we have enough coins
+    let costs = validator.validate_expression(expr)?;
+
+    // Spend the required coins
+    for cost in costs {
+        match cost.coin_type {
+            CoinType::Variable => {
+                for _ in 0..cost.amt {
+                    validator
+                        .coin_manager_mut()
+                        .spend_var_coin()
+                        .map_err(ValidationError::CoinError)?;
+                }
+            }
+            CoinType::Function => {
+                for _ in 0..cost.amt {
+                    validator
+                        .coin_manager_mut()
+                        .spend_func_coin()
+                        .map_err(ValidationError::CoinError)?;
+                }
+            }
+        }
+    }
+
+    // Now evaluate the expression
+    Ok(eval(expr))
 }

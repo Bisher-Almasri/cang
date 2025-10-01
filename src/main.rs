@@ -1,8 +1,7 @@
-use cang::{Token, TokenTypes};
-
-mod parser;
-
-use parser::{eval, Parser};
+use cang::{
+    parser::{eval, eval_with_validation, Parser},
+    CoinManager, ResourceValidator, Token, TokenTypes,
+};
 
 fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
@@ -115,7 +114,48 @@ fn main() {
     println!("AST: {:#?}", ast);
 
     println!("");
+
     let result = eval(&ast);
-    println!("Result: {}", result);
+    println!("Result (no validation): {}", result);
+
+    let coin_manager = CoinManager::new();
+    let mut validator = ResourceValidator::new(coin_manager);
+
+    println!(
+        "Initial coin balances: {:?}",
+        validator.coin_manager().get_all_balences()
+    );
+
+    match eval_with_validation(&ast, &mut validator) {
+        Ok(result) => {
+            println!("Result (with validation): {}", result);
+            println!(
+                "Remaining coin balances: {:?}",
+                validator.coin_manager().get_all_balences()
+            );
+        }
+        Err(e) => {
+            println!("Validation error: {}", e);
+        }
+    }
+
+    println!("\n--- Testing insufficient funds scenario ---");
+    let low_coin_manager = CoinManager::with_balances(1, 0);
+    let mut low_validator = ResourceValidator::new(low_coin_manager);
+
+    println!(
+        "Low coin balances: {:?}",
+        low_validator.coin_manager().get_all_balences()
+    );
+
+    match eval_with_validation(&ast, &mut low_validator) {
+        Ok(result) => {
+            println!("Unexpected success: {}", result);
+        }
+        Err(e) => {
+            println!("Expected validation error: {}", e);
+        }
+    }
+
     println!("");
 }
