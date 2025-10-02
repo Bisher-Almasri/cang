@@ -1,9 +1,11 @@
 pub mod coin_manager;
 pub mod parser;
+pub mod repl;
 pub mod resource_validator;
 
 pub use coin_manager::{CoinError, CoinManager, CoinReward, CoinType};
 pub use parser::Expr;
+pub use repl::Repl;
 pub use resource_validator::{CoinCost, ResourceValidator, ValidationError};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -15,6 +17,9 @@ pub enum TokenTypes {
     Slash,
     LParen,
     RParen,
+    Let,
+    Identifier,
+    Eq,
 }
 
 #[derive(Debug, Clone)]
@@ -24,3 +29,137 @@ pub struct Token {
     pub pos: (usize, usize),
 }
 
+pub fn tokenize(input: &str) -> Vec<Token> {
+    let mut tokens: Vec<Token> = Vec::new();
+    let mut chars = input.chars().peekable();
+
+    let mut line = 1;
+    let mut col = 0;
+
+    // add let
+
+    while let Some(&ch) = chars.peek() {
+        match ch {
+            '0'..='9' => {
+                let mut num = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c.is_ascii_digit() {
+                        num.push(c);
+                        chars.next();
+                        col += 1;
+                    } else {
+                        break;
+                    }
+                }
+                tokens.push(Token {
+                    token_type: TokenTypes::Number,
+                    value: Some(num),
+                    pos: (line, col),
+                });
+            }
+            '+' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Plus,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            '-' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Minus,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            '*' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Star,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            '/' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Slash,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            '(' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::LParen,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            ')' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::RParen,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            '=' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Eq,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+
+            ' ' | '\t' => {
+                chars.next();
+                col += 1;
+            }
+            '\n' => {
+                chars.next();
+                line += 1;
+                col = 0;
+            }
+            'a'..='z' | 'A'..='Z' | '_' => {
+                let mut ident = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c.is_alphanumeric() || c == '_' {
+                        ident.push(c);
+                        chars.next();
+                        col += 1;
+                    } else {
+                        break;
+                    }
+                }
+
+                let token_type = match ident.as_str() {
+                    "let" => TokenTypes::Let,
+                    _ => TokenTypes::Identifier,
+                };
+
+                tokens.push(Token {
+                    token_type,
+                    value: Some(ident),
+                    pos: (line, col),
+                });
+            }
+
+            _ => {
+                chars.next();
+                col += 1;
+            }
+        }
+    }
+
+    tokens
+}

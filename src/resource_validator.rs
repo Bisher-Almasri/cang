@@ -63,15 +63,17 @@ impl ResourceValidator {
             Expr::Number(_) => {
                 vec![] //nums are free for now
             }
-            Expr::Binary(lhs, _op, rhs) => {
+            Expr::Binary(_lhs, _op, _rhs) => {
                 // for now lets say math costs var coins
+                vec![]
+            }
+            Expr::Let(_ident, val) => {
                 let mut costs = vec![CoinCost {
                     coin_type: CoinType::Variable,
                     amt: 1,
                 }];
 
-                costs.extend(self.calculate_costs(lhs));
-                costs.extend(self.calculate_costs(rhs));
+                costs.extend(self.calculate_costs(val));
 
                 self.merge_costs(costs)
             }

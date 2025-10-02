@@ -1,9 +1,10 @@
-use crate::{ResourceValidator, Token, TokenTypes, ValidationError, CoinType};
+use crate::{CoinType, ResourceValidator, Token, TokenTypes, ValidationError};
 
 #[derive(Debug)]
 pub enum Expr {
     Number(i64),
     Binary(Box<Expr>, TokenTypes, Box<Expr>),
+    Let(String, Box<Expr>), // ident, val
 }
 
 pub struct Parser {
@@ -72,6 +73,47 @@ impl Parser {
             other => panic!("Unexpected token {:?}", other),
         }
     }
+    pub fn parse_stmt(&mut self) -> Expr {
+        match self.peek() {
+            Some(Token {
+                token_type: TokenTypes::Let,
+                ..
+            }) => {
+                self.eat();
+
+                let ident = match self.eat() {
+                    Some(Token {
+                        token_type: TokenTypes::Identifier,
+                        value: Some(name),
+                        ..
+                    }) => name,
+                    _ => panic!("Expected identifier after 'let'"),
+                };
+
+                // Expect '='
+                match self.eat() {
+                    Some(Token {
+                        token_type: TokenTypes::Eq,
+                        ..
+                    }) => {}
+                    _ => panic!("Expected '=' after identifier in let statement"),
+                }
+
+                // Parse the expression to the right of '='
+                let expr = self.parse_expr();
+
+                // match self.peek() {
+                //     Some(Token { token_type: TokenTypes::Semicolon, .. }) => {
+                //         self.eat(); // consume semicolon
+                //     }
+                //     _ => {}
+                // }
+
+                Expr::Let(ident, Box::new(expr))
+            }
+            _ => self.parse_expr(),
+        }
+    }
 }
 
 pub fn eval(expr: &Expr) -> i64 {
@@ -88,18 +130,20 @@ pub fn eval(expr: &Expr) -> i64 {
                 _ => panic!("Invalid operator: {:?}", op),
             }
         }
+        Expr::Let(name, expr) => {
+            let value = eval(expr);
+            println!("(Let binding: {} = {})", name, value);
+            value // For now just return value
+        }
     }
 }
 
-/// Evaluates an expression with coin validation and spending
 pub fn eval_with_validation(
     expr: &Expr,
     validator: &mut ResourceValidator,
 ) -> Result<i64, ValidationError> {
-    // First validate that we have enough coins
     let costs = validator.validate_expression(expr)?;
 
-    // Spend the required coins
     for cost in costs {
         match cost.coin_type {
             CoinType::Variable => {
@@ -121,6 +165,5 @@ pub fn eval_with_validation(
         }
     }
 
-    // Now evaluate the expression
     Ok(eval(expr))
 }
