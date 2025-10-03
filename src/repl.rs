@@ -1,12 +1,16 @@
-use std::io::{self, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
 use crate::{
     parser::{eval_with_validation, Parser},
-    tokenize, CoinManager, ResourceValidator,
+    tokenize, CoinManager, Expr, ResourceValidator,
 };
 
 pub struct Repl {
     pub validator: ResourceValidator,
+    pub env: HashMap<String, Expr>,
 }
 
 impl Repl {
@@ -14,7 +18,10 @@ impl Repl {
         let coin_manager = CoinManager::new();
         let validator = ResourceValidator::new(coin_manager);
 
-        Self { validator }
+        Self {
+            validator,
+            env: HashMap::new(),
+        }
     }
 
     pub fn run(&mut self) {
@@ -71,7 +78,7 @@ impl Repl {
         println!("Before execution");
         self.show_coinbal();
 
-        match eval_with_validation(&ast, &mut self.validator) {
+        match eval_with_validation(&ast, &mut self.validator, &mut self.env) {
             Ok(res) => {
                 println!("Result: {}", res);
                 println!("\nAfter execution:");
@@ -103,7 +110,7 @@ impl Repl {
     }
 
     pub fn show_coinbal(&self) {
-        let bal = self.validator.coin_manager().get_all_balences();
+        let bal = self.validator.coin_manager().get_all_balances();
         println!("Coin Balances:");
         for (coint_type, amt) in bal {
             let coin_name = match coint_type {

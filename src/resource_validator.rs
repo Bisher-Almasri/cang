@@ -45,11 +45,11 @@ impl ResourceValidator {
         let costs = self.calculate_costs(expr);
 
         for cost in &costs {
-            let available = self.coin_manager.get_balence(cost.coin_type);
+            let available = self.coin_manager.get_balance(cost.coin_type);
             if available < cost.amt {
                 return Err(ValidationError::CoinError(CoinError::InsufficientFunds {
                     required: cost.amt,
-                    availabe: available,
+                    available,
                     coin_type: cost.coin_type,
                 }));
             }
@@ -60,22 +60,35 @@ impl ResourceValidator {
 
     pub fn calculate_costs(&self, expr: &Expr) -> Vec<CoinCost> {
         match expr {
-            Expr::Number(_) => {
-                vec![] //nums are free for now
+            Expr::Number(_) | Expr::Var(_) => vec![],
+            Expr::FnDef(_, _, body) => {
+                let mut costs = vec![CoinCost {
+                    coin_type: CoinType::Function,
+                    amt: 1,
+                }];
+                costs.extend(self.calculate_costs(body));
+                costs
             }
-            Expr::Binary(_lhs, _op, _rhs) => {
-                // for now lets say math costs var coins
-                vec![]
+            Expr::Binary(lhs, _, rhs) => {
+                let mut costs = vec![];
+                costs.extend(self.calculate_costs(lhs));
+                costs.extend(self.calculate_costs(rhs));
+                costs
             }
-            Expr::Let(_ident, val) => {
+            Expr::Let(_, val) => {
                 let mut costs = vec![CoinCost {
                     coin_type: CoinType::Variable,
                     amt: 1,
                 }];
-
                 costs.extend(self.calculate_costs(val));
-
-                self.merge_costs(costs)
+                costs
+            }
+            Expr::FnCall(_, args) => {
+                let mut costs = vec![];
+                for arg in args {
+                    costs.extend(self.calculate_costs(arg));
+                }
+                costs
             }
         }
     }

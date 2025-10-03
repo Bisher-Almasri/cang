@@ -20,6 +20,11 @@ pub enum TokenTypes {
     Let,
     Identifier,
     Eq,
+    Fn,
+    LCurly,
+    RCurly,
+    Semicolon,
+    Comma,
 }
 
 #[derive(Debug, Clone)]
@@ -40,6 +45,31 @@ pub fn tokenize(input: &str) -> Vec<Token> {
 
     while let Some(&ch) = chars.peek() {
         match ch {
+            'a'..='z' | 'A'..='Z' | '_' => {
+                let mut ident = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c.is_alphanumeric() || c == '_' {
+                        ident.push(c);
+                        chars.next();
+                        col += 1;
+                    } else {
+                        break;
+                    }
+                }
+
+                let token_type = match ident.as_str() {
+                    "let" => TokenTypes::Let,
+                    "fn" => TokenTypes::Fn,
+                    _ => TokenTypes::Identifier,
+                };
+
+                tokens.push(Token {
+                    token_type,
+                    value: Some(ident),
+                    pos: (line, col),
+                });
+            }
+
             '0'..='9' => {
                 let mut num = String::new();
                 while let Some(&c) = chars.peek() {
@@ -111,11 +141,47 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                     pos: (line, col),
                 });
             }
+            '{' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::LCurly,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            '}' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::RCurly,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
             '=' => {
                 chars.next();
                 col += 1;
                 tokens.push(Token {
                     token_type: TokenTypes::Eq,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            ';' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Semicolon,
+                    value: None,
+                    pos: (line, col),
+                });
+            }
+            ',' => {
+                chars.next();
+                col += 1;
+                tokens.push(Token {
+                    token_type: TokenTypes::Comma,
                     value: None,
                     pos: (line, col),
                 });
@@ -130,30 +196,6 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 line += 1;
                 col = 0;
             }
-            'a'..='z' | 'A'..='Z' | '_' => {
-                let mut ident = String::new();
-                while let Some(&c) = chars.peek() {
-                    if c.is_alphanumeric() || c == '_' {
-                        ident.push(c);
-                        chars.next();
-                        col += 1;
-                    } else {
-                        break;
-                    }
-                }
-
-                let token_type = match ident.as_str() {
-                    "let" => TokenTypes::Let,
-                    _ => TokenTypes::Identifier,
-                };
-
-                tokens.push(Token {
-                    token_type,
-                    value: Some(ident),
-                    pos: (line, col),
-                });
-            }
-
             _ => {
                 chars.next();
                 col += 1;

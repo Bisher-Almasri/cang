@@ -12,7 +12,7 @@ pub enum CoinType {
 pub enum CoinError {
     InsufficientFunds {
         required: u32,
-        availabe: u32,
+        available: u32,
         coin_type: CoinType,
     },
     InvalidCoinType,
@@ -23,13 +23,13 @@ impl std::fmt::Display for CoinError {
         match self {
             CoinError::InsufficientFunds {
                 required,
-                availabe,
+                available,
                 coin_type,
             } => {
                 write!(
                     f,
                     "Insufficient {:?} coins (need {}, have {})",
-                    coin_type, required, availabe
+                    coin_type, required, available
                 )
             }
             CoinError::InvalidCoinType => write!(f, "Invalid coin type"),
@@ -47,26 +47,26 @@ pub struct CoinReward {
 
 #[derive(Debug, Clone)]
 pub struct CoinManager {
-    balences: HashMap<CoinType, u32>,
+    balances: HashMap<CoinType, u32>,
 }
 
 impl CoinManager {
     // def 10 var 3 func
     pub fn new() -> Self {
-        let mut balences = HashMap::new();
-        balences.insert(CoinType::Variable, 10);
-        balences.insert(CoinType::Function, 3);
+        let mut balances = HashMap::new();
+        balances.insert(CoinType::Variable, 10);
+        balances.insert(CoinType::Function, 3);
 
-        Self { balences }
+        Self { balances }
     }
 
     // create wirh amt
     pub fn with_balances(variable_coins: u32, function_coins: u32) -> Self {
-        let mut balences = HashMap::new();
-        balences.insert(CoinType::Variable, variable_coins);
-        balences.insert(CoinType::Function, function_coins);
+        let mut balances = HashMap::new();
+        balances.insert(CoinType::Variable, variable_coins);
+        balances.insert(CoinType::Function, function_coins);
 
-        Self { balences }
+        Self { balances }
     }
 
     pub fn spend_var_coin(&mut self) -> Result<(), CoinError> {
@@ -78,31 +78,31 @@ impl CoinManager {
     }
 
     fn spend_coins(&mut self, coin_type: CoinType, amt: u32) -> Result<(), CoinError> {
-        let current_balence = self.get_balence(coin_type);
+        let current_balance = self.get_balance(coin_type);
 
-        if current_balence < amt {
+        if current_balance < amt {
             return Err(CoinError::InsufficientFunds {
                 required: amt,
-                availabe: current_balence,
+                available: current_balance,
                 coin_type,
             });
         }
 
-        self.balences.insert(coin_type, current_balence - amt);
+        self.balances.insert(coin_type, current_balance - amt);
         Ok(())
     }
 
-    pub fn get_balence(&self, coin_type: CoinType) -> u32 {
-        *self.balences.get(&coin_type).unwrap_or(&0)
+    pub fn get_balance(&self, coin_type: CoinType) -> u32 {
+        *self.balances.get(&coin_type).unwrap_or(&0)
     }
 
     pub fn add_coins(&mut self, amt: u32, coin_type: CoinType) {
-        let current_balence = self.get_balence(coin_type);
-        self.balences.insert(coin_type, current_balence + amt);
+        let current_balance = self.get_balance(coin_type);
+        self.balances.insert(coin_type, current_balance + amt);
     }
 
-    pub fn get_all_balences(&self) -> &HashMap<CoinType, u32> {
-        &self.balences
+    pub fn get_all_balances(&self) -> &HashMap<CoinType, u32> {
+        &self.balances
     }
 
     pub fn apply_rewards(&mut self, rewards: &[CoinReward]) {
