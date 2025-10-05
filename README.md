@@ -6,3 +6,9 @@ Example: you might start with 10 variable coins and 3 function coins. You earn m
 # But why
 
 Cause i want siege coins
+
+## Ai Usage
+I used ai for:
+- Some Tests and Quests
+- Debugging
+Id estimate 25%

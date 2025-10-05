@@ -6,7 +6,7 @@ pub enum CoinType {
     Function,
 }
 
-// for now i tihnk it cost to make stuff not to use, due to change rpob
+// for now i think it cost to make stuff not to use, due to change prob
 
 #[derive(Debug, PartialEq)]
 pub enum CoinError {
@@ -60,7 +60,7 @@ impl CoinManager {
         Self { balances }
     }
 
-    // create wirh amt
+    // create with amt
     pub fn with_balances(variable_coins: u32, function_coins: u32) -> Self {
         let mut balances = HashMap::new();
         balances.insert(CoinType::Variable, variable_coins);

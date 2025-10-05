@@ -1,10 +1,12 @@
 pub mod coin_manager;
 pub mod parser;
+pub mod quest_system;
 pub mod repl;
 pub mod resource_validator;
 
 pub use coin_manager::{CoinError, CoinManager, CoinReward, CoinType};
 pub use parser::Expr;
+pub use quest_system::{ExecutionContext, FunctionDef, Quest, QuestManager, QuestObjective, QuestProgress};
 pub use repl::Repl;
 pub use resource_validator::{CoinCost, ResourceValidator, ValidationError};
 
@@ -25,6 +27,8 @@ pub enum TokenTypes {
     RCurly,
     Semicolon,
     Comma,
+    Print,
+    String,
 }
 
 #[derive(Debug, Clone)]
@@ -60,6 +64,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 let token_type = match ident.as_str() {
                     "let" => TokenTypes::Let,
                     "fn" => TokenTypes::Fn,
+                    "print" => TokenTypes::Print,
                     _ => TokenTypes::Identifier,
                 };
 
@@ -195,6 +200,47 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 chars.next();
                 line += 1;
                 col = 0;
+            }
+            '"' => {
+                chars.next(); // consume opening quote
+                col += 1;
+                let mut string_val = String::new();
+                
+                while let Some(&c) = chars.peek() {
+                    if c == '"' {
+                        chars.next(); // consume closing quote
+                        col += 1;
+                        break;
+                    } else if c == '\\' {
+                        chars.next(); // consume backslash
+                        col += 1;
+                        if let Some(&escaped) = chars.peek() {
+                            match escaped {
+                                'n' => string_val.push('\n'),
+                                't' => string_val.push('\t'),
+                                'r' => string_val.push('\r'),
+                                '\\' => string_val.push('\\'),
+                                '"' => string_val.push('"'),
+                                _ => {
+                                    string_val.push('\\');
+                                    string_val.push(escaped);
+                                }
+                            }
+                            chars.next();
+                            col += 1;
+                        }
+                    } else {
+                        string_val.push(c);
+                        chars.next();
+                        col += 1;
+                    }
+                }
+                
+                tokens.push(Token {
+                    token_type: TokenTypes::String,
+                    value: Some(string_val),
+                    pos: (line, col),
+                });
             }
             _ => {
                 chars.next();

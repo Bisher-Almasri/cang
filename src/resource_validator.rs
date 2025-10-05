@@ -1,4 +1,4 @@
-// purpouse of tihsi s to analyze hte ast an check if user can run
+// purpose of this is to analyze the ast and check if user can run
 use crate::{CoinError, CoinManager, CoinType, Expr};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -60,7 +60,7 @@ impl ResourceValidator {
 
     pub fn calculate_costs(&self, expr: &Expr) -> Vec<CoinCost> {
         match expr {
-            Expr::Number(_) | Expr::Var(_) => vec![],
+            Expr::Number(_) | Expr::Var(_) | Expr::String(_) => vec![],
             Expr::FnDef(_, _, body) => {
                 let mut costs = vec![CoinCost {
                     coin_type: CoinType::Function,
@@ -89,6 +89,16 @@ impl ResourceValidator {
                     costs.extend(self.calculate_costs(arg));
                 }
                 costs
+            }
+            Expr::Block(statements) => {
+                let mut costs = vec![];
+                for stmt in statements {
+                    costs.extend(self.calculate_costs(stmt));
+                }
+                costs
+            }
+            Expr::Print(expr) => {
+                self.calculate_costs(expr)
             }
         }
     }
