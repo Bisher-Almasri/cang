@@ -11,4 +11,6 @@ Cause i want siege coins
 I used ai for:
 - Some Tests and Quests
 - Debugging
-Id estimate 25%
+
+
+Id estimate 25% ai usage for everything
