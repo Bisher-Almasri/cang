@@ -7,3 +7,13 @@ description = "A coin based interpeter"
 repository = "https://github.com/bisher-almasri/cang"
 license = "MIT"
 
+exclude = [
+    "media/*",
+    "*.gif",
+    "*.mp4",
+    "*.mov",
+    "*.zip",
+    "target/*",
+    "*.rs.bk",
+    "*.log"
+]
