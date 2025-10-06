@@ -4,6 +4,7 @@
 Example: you might start with 10 variable coins and 3 function coins. You earn more coins by completing in-interpreter quests such as "add 5 print calls" or "run a program 100 times".
 
 # Demo (might take a bit to load)
+
 ![Demo](/media/Screen%20Recording%202025-10-05%20at%203.57.10 PM.gif)
 
 # But why
@@ -11,9 +12,22 @@ Example: you might start with 10 variable coins and 3 function coins. You earn m
 Cause i want siege coins
 
 ## Ai Usage
+
 I used ai for:
+
 - Some Tests and Quests
 - Debugging
 
+# Build instructions
+
+- Deps: Rust
+
+```sh
+cargo build --release
+./target/release/cang
+# or
+cargo run
+# it is that easy
+```
 
 Id estimate 25% ai usage for everything

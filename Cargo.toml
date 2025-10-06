@@ -2,6 +2,8 @@
 name = "cang"
 version = "0.1.0"
 edition = "2024"
+authors = ["Bisher Almasri <bisherk.almasri@gmail.com>"]
+description = "A coin based interpeter"
+repository = "https://github.com/bisher-almasri/cang"
+license = "MIT"
 
-[dependencies]
-terminal_size = "0.4.3"
