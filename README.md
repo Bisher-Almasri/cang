@@ -5,8 +5,7 @@ For example, you might start with 10 variable coins and 3 function coins. You ca
 
 ## Demo (may take a few moments to load)
 
-![Demo](/media/Screen%20Recording%202025-10-05%20at%203.57.10 PM.gif)
-
+video i yuse cvatbo github noy work https://files.catbox.moe/dsucyn.mp4
 ## Why?
 
 Because I want siege coins. 🪙
